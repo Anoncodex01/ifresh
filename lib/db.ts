@@ -21,14 +21,24 @@ function getPool(): mysql.Pool {
     return global._mysqlPool;
   }
 
-  // Check if we're in build time (no env vars available)
+  // Check if we're in build time or env vars are missing
   // During build, Next.js may analyze code but env vars aren't set
-  if (process.env.NEXT_PHASE === 'phase-production-build' || !process.env.MYSQL_HOST) {
-    // Return a mock pool that will fail gracefully when used
-    // This prevents build-time errors
+  // Also check for Vercel build environment
+  const isBuildTime = 
+    process.env.NEXT_PHASE === 'phase-production-build' ||
+    process.env.VERCEL_ENV === undefined && !process.env.MYSQL_HOST ||
+    process.env.NODE_ENV === 'production' && !process.env.MYSQL_HOST && process.env.VERCEL !== '1';
+  
+  if (isBuildTime) {
+    // During build, throw error that will be caught gracefully
     throw new Error(
       'Database not configured. Environment variables are required at runtime, not build time.'
     );
+  }
+
+  // Check if required env vars are present
+  if (!process.env.MYSQL_HOST) {
+    throw new Error('MYSQL_HOST environment variable is required');
   }
 
   // Optional SSL support for hosted MySQL (PlanetScale, managed providers)
