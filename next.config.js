@@ -21,11 +21,9 @@ const nextConfig = {
   // Production optimizations
   compress: true,
   poweredByHeader: false,
-  // Ensure proper runtime for API routes
+  // Server Actions (enabled by default in Next.js 13.5+)
   experimental: {
-    serverActions: {
-      bodySizeLimit: '10mb',
-    },
+    serverActions: true,
   },
 };
 

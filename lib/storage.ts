@@ -41,7 +41,7 @@ class LocalStorage implements StorageAdapter {
 }
 
 /**
- * AWS S3 storage (for Vercel/serverless)
+ * AWS S3 storage (optional - only if using AWS S3)
  * Note: Install @aws-sdk/client-s3 package: npm install @aws-sdk/client-s3
  */
 class S3Storage implements StorageAdapter {
@@ -58,46 +58,51 @@ class S3Storage implements StorageAdapter {
   }
 
   async upload(file: Buffer, filename: string, mimetype?: string): Promise<string> {
+    // Use dynamic require to avoid build-time errors if package not installed
+    let S3Client: any, PutObjectCommand: any;
     try {
-      // Dynamic import to avoid bundling AWS SDK in client
-      // @ts-ignore - Optional dependency, may not be installed
-      const { S3Client, PutObjectCommand } = await import('@aws-sdk/client-s3');
-      
-      const s3Client = new S3Client({
-        region: this.region,
-        credentials: {
-          accessKeyId: process.env.AWS_ACCESS_KEY_ID || '',
-          secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY || '',
-        },
-      });
-
-      const command = new PutObjectCommand({
-        Bucket: this.bucket,
-        Key: `uploads/${filename}`,
-        Body: file,
-        ContentType: mimetype || 'application/octet-stream',
-        ACL: 'public-read',
-      });
-
-      await s3Client.send(command);
-      
-      // Return public URL (adjust if using CloudFront or custom domain)
-      const publicUrl = process.env.AWS_S3_PUBLIC_URL 
-        ? `${process.env.AWS_S3_PUBLIC_URL}/uploads/${filename}`
-        : `https://${this.bucket}.s3.${this.region}.amazonaws.com/uploads/${filename}`;
-      return publicUrl;
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
+      const s3Module = require('@aws-sdk/client-s3');
+      S3Client = s3Module.S3Client;
+      PutObjectCommand = s3Module.PutObjectCommand;
     } catch (error: any) {
       if (error.code === 'MODULE_NOT_FOUND') {
         throw new Error('AWS SDK not installed. Run: npm install @aws-sdk/client-s3');
       }
       throw error;
     }
+    
+    const s3Client = new S3Client({
+      region: this.region,
+      credentials: {
+        accessKeyId: process.env.AWS_ACCESS_KEY_ID || '',
+        secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY || '',
+      },
+    });
+
+    const command = new PutObjectCommand({
+      Bucket: this.bucket,
+      Key: `uploads/${filename}`,
+      Body: file,
+      ContentType: mimetype || 'application/octet-stream',
+      ACL: 'public-read',
+    });
+
+    await s3Client.send(command);
+    
+    // Return public URL (adjust if using CloudFront or custom domain)
+    const publicUrl = process.env.AWS_S3_PUBLIC_URL 
+      ? `${process.env.AWS_S3_PUBLIC_URL}/uploads/${filename}`
+      : `https://${this.bucket}.s3.${this.region}.amazonaws.com/uploads/${filename}`;
+    return publicUrl;
   }
 
   async delete(filename: string): Promise<void> {
     try {
-      // @ts-ignore - Optional dependency, may not be installed
-      const { S3Client, DeleteObjectCommand } = await import('@aws-sdk/client-s3');
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
+      const s3Module = require('@aws-sdk/client-s3');
+      const S3Client = s3Module.S3Client;
+      const DeleteObjectCommand = s3Module.DeleteObjectCommand;
       
       const s3Client = new S3Client({
         region: this.region,
@@ -206,11 +211,7 @@ class CloudinaryStorage implements StorageAdapter {
  * Get the appropriate storage adapter based on environment
  */
 export function getStorageAdapter(): StorageAdapter {
-  // Check for cloud storage configuration
-  if (process.env.AWS_S3_BUCKET && process.env.AWS_ACCESS_KEY_ID && process.env.AWS_SECRET_ACCESS_KEY) {
-    return new S3Storage();
-  }
-  
+  // Priority 1: Cloudinary (easiest, no extra packages needed)
   if (
     process.env.CLOUDINARY_CLOUD_NAME &&
     process.env.CLOUDINARY_API_KEY &&
@@ -219,12 +220,17 @@ export function getStorageAdapter(): StorageAdapter {
     return new CloudinaryStorage();
   }
 
-  // Fallback to local storage (works on VPS, will fail on Vercel)
-  // On Vercel, you MUST configure cloud storage
+  // Priority 2: AWS S3 (requires @aws-sdk/client-s3 package)
+  if (process.env.AWS_S3_BUCKET && process.env.AWS_ACCESS_KEY_ID && process.env.AWS_SECRET_ACCESS_KEY) {
+    return new S3Storage();
+  }
+
+  // Priority 3: Local storage (works on VPS/Hetzner, will fail on Vercel)
+  // On Vercel, you MUST configure cloud storage (Cloudinary recommended)
   if (process.env.VERCEL) {
     console.warn(
       '⚠️  Running on Vercel without cloud storage configured. ' +
-      'File uploads will fail. Please configure AWS S3 or Cloudinary.'
+      'File uploads will fail. Please configure Cloudinary (recommended) or AWS S3.'
     );
   }
 

@@ -26,15 +26,18 @@ export async function GET(_req: Request, { params }: { params: { id: string } })
       return NextResponse.json({ error: 'Invalid order id' }, { status: 400 });
     }
 
-    // Dynamically import pdfkit so the app can run without it if not installed
+    // Dynamically require pdfkit so the app can run without it if not installed
     let PDFDocument: any;
     try {
-      // @ts-ignore
-      PDFDocument = (await import('pdfkit')).default;
-    } catch {
-      return NextResponse.json({
-        error: 'PDF generator not available. Please install "pdfkit" (npm i pdfkit) to enable PDF receipts.'
-      }, { status: 501 });
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
+      PDFDocument = require('pdfkit');
+    } catch (error: any) {
+      if (error.code === 'MODULE_NOT_FOUND') {
+        return NextResponse.json({
+          error: 'PDF generator not available. Please install "pdfkit" (npm i pdfkit) to enable PDF receipts.'
+        }, { status: 501 });
+      }
+      throw error;
     }
 
     const data = await getOrder(orderId);
