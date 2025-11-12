@@ -17,7 +17,23 @@ export async function GET() {
     const a = rows[0];
     return NextResponse.json({ id: a.id, name: a.full_name, email: a.email, role: a.role, createdAt: a.created_at });
   } catch (e: any) {
-    console.error('GET /api/admin/me error', { message: e?.message, code: e?.code });
-    return NextResponse.json({ error: 'Failed' }, { status: 500 });
+    console.error('GET /api/admin/me error', { 
+      message: e?.message, 
+      code: e?.code,
+      stack: e?.stack 
+    });
+    
+    // Database connection errors
+    if (e?.code === 'ENOTFOUND' || e?.code === 'ECONNREFUSED' || e?.code === 'ETIMEDOUT') {
+      return NextResponse.json({ 
+        error: 'Database connection failed',
+        hint: 'Check database environment variables and firewall settings in Vercel'
+      }, { status: 500 });
+    }
+    
+    return NextResponse.json({ 
+      error: 'Failed to fetch admin data',
+      hint: 'Check Vercel function logs for details'
+    }, { status: 500 });
   }
 }

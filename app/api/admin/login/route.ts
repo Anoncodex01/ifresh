@@ -74,7 +74,11 @@ export async function POST(req: Request) {
 
     const rows = await query<any>(`SELECT id, full_name, email, password_hash FROM admins WHERE email = ? LIMIT 1`, [String(email)]);
     if (!rows.length) {
-      return NextResponse.json({ error: 'Invalid credentials' }, { status: 401 });
+      // Check if this is a database connection issue
+      console.error('Admin login: No user found or database query failed', { email });
+      return NextResponse.json({ 
+        error: 'Invalid credentials or database connection issue. Check Vercel logs for details.' 
+      }, { status: 401 });
     }
     const admin = rows[0];
     const v = await verifyPassword(String(password), String(admin.password_hash));
@@ -96,16 +100,41 @@ export async function POST(req: Request) {
     });
     return res;
   } catch (e: any) {
-    console.error('POST /api/admin/login error', { message: e?.message, code: e?.code });
+    console.error('POST /api/admin/login error', { 
+      message: e?.message, 
+      code: e?.code,
+      stack: e?.stack 
+    });
+    
+    // Database connection errors
     if (e?.code === 'ER_ACCESS_DENIED_ERROR') {
-      return NextResponse.json({ error: 'Database access denied. Check MYSQL_USER/MYSQL_PASSWORD.' }, { status: 500 });
+      return NextResponse.json({ 
+        error: 'Database access denied. Check MYSQL_USER and MYSQL_PASSWORD in Vercel environment variables.',
+        hint: 'Verify database credentials are correct'
+      }, { status: 500 });
     }
-    if (e?.code === 'ENOTFOUND' || e?.code === 'ECONNREFUSED') {
-      return NextResponse.json({ error: 'Cannot connect to MySQL. Check MYSQL_HOST/MYSQL_PORT.' }, { status: 500 });
+    if (e?.code === 'ENOTFOUND' || e?.code === 'ECONNREFUSED' || e?.code === 'ETIMEDOUT') {
+      return NextResponse.json({ 
+        error: 'Cannot connect to MySQL database.',
+        hint: 'Check MYSQL_HOST, MYSQL_PORT, and database firewall settings. Vercel needs access to your database.',
+        details: 'Make sure your database allows connections from all IPs (0.0.0.0/0) or whitelist Vercel IPs.'
+      }, { status: 500 });
     }
     if (e?.message?.includes('Missing required env var')) {
-      return NextResponse.json({ error: e.message }, { status: 500 });
+      return NextResponse.json({ 
+        error: e.message,
+        hint: 'Add all required database environment variables in Vercel project settings'
+      }, { status: 500 });
     }
-    return NextResponse.json({ error: 'Login failed' }, { status: 500 });
+    if (e?.message?.includes('not configured')) {
+      return NextResponse.json({ 
+        error: 'Database not configured properly.',
+        hint: 'Check all MYSQL_* environment variables are set in Vercel'
+      }, { status: 500 });
+    }
+    return NextResponse.json({ 
+      error: 'Login failed',
+      hint: 'Check Vercel function logs for detailed error information'
+    }, { status: 500 });
   }
 }
