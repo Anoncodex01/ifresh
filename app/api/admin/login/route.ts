@@ -43,41 +43,119 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'email and password are required' }, { status: 400 });
     }
 
+    // Test database connection first
+    let dbConnected = false;
+    try {
+      await query<any>(`SELECT 1 as test`);
+      dbConnected = true;
+    } catch (dbError: any) {
+      console.error('Database connection test failed:', {
+        code: dbError?.code,
+        message: dbError?.message,
+        host: process.env.MYSQL_HOST
+      });
+      // Return specific database error
+      if (dbError?.code === 'ENOTFOUND' || dbError?.code === 'ECONNREFUSED' || dbError?.code === 'ETIMEDOUT') {
+        return NextResponse.json({ 
+          error: 'Cannot connect to database',
+          hint: 'Check database firewall settings. Vercel needs access to your database.',
+          details: 'Allow connections from 0.0.0.0/0 or whitelist Vercel IPs'
+        }, { status: 500 });
+      }
+      if (dbError?.code === 'ER_ACCESS_DENIED_ERROR') {
+        return NextResponse.json({ 
+          error: 'Database access denied',
+          hint: 'Check MYSQL_USER and MYSQL_PASSWORD in Vercel environment variables'
+        }, { status: 500 });
+      }
+      return NextResponse.json({ 
+        error: 'Database connection failed',
+        hint: 'Check Vercel function logs for detailed error information'
+      }, { status: 500 });
+    }
+
     // Ensure admins table exists
-    await execute(`
-      CREATE TABLE IF NOT EXISTS admins (
-        id INT UNSIGNED NOT NULL AUTO_INCREMENT,
-        full_name VARCHAR(255) NOT NULL,
-        email VARCHAR(255) NOT NULL UNIQUE,
-        password_hash VARCHAR(255) NOT NULL,
-        role ENUM('owner','admin') NOT NULL DEFAULT 'admin',
-        created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-        updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-        PRIMARY KEY (id)
-      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
-    `);
+    try {
+      await execute(`
+        CREATE TABLE IF NOT EXISTS admins (
+          id INT UNSIGNED NOT NULL AUTO_INCREMENT,
+          full_name VARCHAR(255) NOT NULL,
+          email VARCHAR(255) NOT NULL UNIQUE,
+          password_hash VARCHAR(255) NOT NULL,
+          role ENUM('owner','admin') NOT NULL DEFAULT 'admin',
+          created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+          updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+          PRIMARY KEY (id)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+      `);
+    } catch (tableError: any) {
+      console.error('Failed to create admins table:', tableError);
+      return NextResponse.json({ 
+        error: 'Database setup failed',
+        hint: 'Check database permissions and connection'
+      }, { status: 500 });
+    }
 
     // Optional seeding from env on first run
     const adminEmail = process.env.ADMIN_EMAIL;
     const adminPass = process.env.ADMIN_PASSWORD;
     if (adminEmail && adminPass) {
-      const existing = await query<any>(`SELECT id FROM admins WHERE email = ? LIMIT 1`, [adminEmail]);
-      if (existing.length === 0) {
-        await execute(`INSERT INTO admins (full_name, email, password_hash, role) VALUES (?, ?, ?, ?)`, [
-          process.env.ADMIN_NAME || 'Admin User',
-          adminEmail,
-          hashPassword(adminPass),
-          'owner',
-        ]);
+      try {
+        const existing = await query<any>(`SELECT id FROM admins WHERE email = ? LIMIT 1`, [adminEmail]);
+        if (existing.length === 0) {
+          await execute(`INSERT INTO admins (full_name, email, password_hash, role) VALUES (?, ?, ?, ?)`, [
+            process.env.ADMIN_NAME || 'Admin User',
+            adminEmail,
+            hashPassword(adminPass),
+            'owner',
+          ]);
+          console.log('Admin user created from environment variables:', adminEmail);
+        }
+      } catch (seedError: any) {
+        console.error('Failed to seed admin user:', seedError);
+        // Continue with login attempt even if seeding fails
       }
     }
 
-    const rows = await query<any>(`SELECT id, full_name, email, password_hash FROM admins WHERE email = ? LIMIT 1`, [String(email)]);
-    if (!rows.length) {
-      // Check if this is a database connection issue
-      console.error('Admin login: No user found or database query failed', { email });
+    // Query for the user
+    let rows: any[] = [];
+    try {
+      rows = await query<any>(`SELECT id, full_name, email, password_hash FROM admins WHERE email = ? LIMIT 1`, [String(email)]);
+    } catch (queryError: any) {
+      console.error('Database query failed:', {
+        code: queryError?.code,
+        message: queryError?.message,
+        email
+      });
       return NextResponse.json({ 
-        error: 'Invalid credentials or database connection issue. Check Vercel logs for details.' 
+        error: 'Database query failed',
+        hint: 'Check database connection and table structure'
+      }, { status: 500 });
+    }
+
+    if (!rows.length) {
+      // Check if admin user exists at all
+      const allAdmins = await query<any>(`SELECT COUNT(*) as count FROM admins`);
+      const adminCount = allAdmins[0]?.count || 0;
+      
+      console.error('Admin login: User not found', { 
+        email,
+        adminCount,
+        hasAdminEnv: !!(adminEmail && adminPass),
+        adminEmailFromEnv: adminEmail
+      });
+      
+      if (adminCount === 0) {
+        return NextResponse.json({ 
+          error: 'No admin users found in database',
+          hint: 'Set ADMIN_EMAIL and ADMIN_PASSWORD in Vercel environment variables to create the first admin user',
+          details: 'The admin user will be created automatically on first login if these variables are set'
+        }, { status: 401 });
+      }
+      
+      return NextResponse.json({ 
+        error: 'Invalid email or password',
+        hint: 'Check your email address and password'
       }, { status: 401 });
     }
     const admin = rows[0];
