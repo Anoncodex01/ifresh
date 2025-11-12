@@ -29,11 +29,22 @@ const nextConfig = {
   webpack: (config, { isServer }) => {
     if (isServer) {
       // Mark optional packages as external for server-side
+      // These will be resolved at runtime, not build time
       config.externals = config.externals || [];
-      config.externals.push({
-        'pdfkit': 'commonjs pdfkit',
-        '@aws-sdk/client-s3': 'commonjs @aws-sdk/client-s3',
-      });
+      if (Array.isArray(config.externals)) {
+        config.externals.push({
+          'pdfkit': 'commonjs pdfkit',
+          '@aws-sdk/client-s3': 'commonjs @aws-sdk/client-s3',
+        });
+      } else {
+        config.externals = [
+          config.externals,
+          {
+            'pdfkit': 'commonjs pdfkit',
+            '@aws-sdk/client-s3': 'commonjs @aws-sdk/client-s3',
+          }
+        ];
+      }
     }
     return config;
   },

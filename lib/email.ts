@@ -1,3 +1,5 @@
+// Server-side only - nodemailer requires Node.js
+import type { Transporter } from 'nodemailer';
 import nodemailer from 'nodemailer';
 
 const host = process.env.SMTP_HOST as string;
