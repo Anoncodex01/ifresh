@@ -14,14 +14,29 @@ function getRequiredEnv(name: string): string {
   return value;
 }
 
-// Optional SSL support for hosted MySQL (PlanetScale, managed providers)
-const useSSL = String(process.env.MYSQL_SSL || '').toLowerCase() === 'true';
-const rejectUnauthorized = String(process.env.MYSQL_SSL_REJECT_UNAUTHORIZED || 'true').toLowerCase() !== 'false';
-const ca = process.env.MYSQL_SSL_CA; // Base64 or raw pem (provider dependent)
+// Lazy initialization - only create pool when actually needed (not during build)
+function getPool(): mysql.Pool {
+  // Return existing pool if available
+  if (global._mysqlPool) {
+    return global._mysqlPool;
+  }
 
-const pool =
-  global._mysqlPool ||
-  mysql.createPool({
+  // Check if we're in build time (no env vars available)
+  // During build, Next.js may analyze code but env vars aren't set
+  if (process.env.NEXT_PHASE === 'phase-production-build' || !process.env.MYSQL_HOST) {
+    // Return a mock pool that will fail gracefully when used
+    // This prevents build-time errors
+    throw new Error(
+      'Database not configured. Environment variables are required at runtime, not build time.'
+    );
+  }
+
+  // Optional SSL support for hosted MySQL (PlanetScale, managed providers)
+  const useSSL = String(process.env.MYSQL_SSL || '').toLowerCase() === 'true';
+  const rejectUnauthorized = String(process.env.MYSQL_SSL_REJECT_UNAUTHORIZED || 'true').toLowerCase() !== 'false';
+  const ca = process.env.MYSQL_SSL_CA; // Base64 or raw pem (provider dependent)
+
+  const pool = mysql.createPool({
     host: getRequiredEnv('MYSQL_HOST'),
     port: Number(process.env.MYSQL_PORT || 3306),
     user: getRequiredEnv('MYSQL_USER'),
@@ -40,18 +55,31 @@ const pool =
       : undefined,
   });
 
-// In development, cache the pool globally so hot reloads don’t create new pools
-if (process.env.NODE_ENV !== 'production') {
-  global._mysqlPool = pool;
+  // In development, cache the pool globally so hot reloads don't create new pools
+  if (process.env.NODE_ENV !== 'production') {
+    global._mysqlPool = pool;
+  }
+
+  return pool;
 }
 
-export { pool };
+// Export pool getter (for backwards compatibility)
+export const pool = new Proxy({} as mysql.Pool, {
+  get(_target, prop) {
+    return getPool()[prop as keyof mysql.Pool];
+  },
+});
 
 export async function query<T = any>(sql: string, params: any[] = []): Promise<T[]> {
   try {
-    const [rows] = await pool.query(sql, params);
+    const dbPool = getPool();
+    const [rows] = await dbPool.query(sql, params);
     return rows as T[];
   } catch (error: any) {
+    // During build time, return empty array to allow build to complete
+    if (process.env.NEXT_PHASE === 'phase-production-build' || error.message?.includes('not configured')) {
+      return [];
+    }
     console.error('Database query error:', error.message);
     // Return empty array if database is not available
     return [];
@@ -60,9 +88,14 @@ export async function query<T = any>(sql: string, params: any[] = []): Promise<T
 
 export async function execute(sql: string, params: any[] = []) {
   try {
-    const [result] = await pool.execute(mysql.format(sql, params));
+    const dbPool = getPool();
+    const [result] = await dbPool.execute(mysql.format(sql, params));
     return result as mysql.ResultSetHeader;
   } catch (error: any) {
+    // During build time, return mock result to allow build to complete
+    if (process.env.NEXT_PHASE === 'phase-production-build' || error.message?.includes('not configured')) {
+      return { insertId: 0, affectedRows: 0 } as mysql.ResultSetHeader;
+    }
     console.error('Database execute error:', error.message);
     // Return a mock result if database is not available
     return { insertId: 0, affectedRows: 0 } as mysql.ResultSetHeader;
