@@ -25,6 +25,18 @@ const nextConfig = {
   experimental: {
     serverActions: true,
   },
+  // Make optional dependencies external (won't cause build errors if not installed)
+  webpack: (config, { isServer }) => {
+    if (isServer) {
+      // Mark optional packages as external for server-side
+      config.externals = config.externals || [];
+      config.externals.push({
+        'pdfkit': 'commonjs pdfkit',
+        '@aws-sdk/client-s3': 'commonjs @aws-sdk/client-s3',
+      });
+    }
+    return config;
+  },
 };
 
 module.exports = nextConfig;

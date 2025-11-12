@@ -61,12 +61,13 @@ class S3Storage implements StorageAdapter {
     // Use dynamic require to avoid build-time errors if package not installed
     let S3Client: any, PutObjectCommand: any;
     try {
-      // eslint-disable-next-line @typescript-eslint/no-require-imports
-      const s3Module = require('@aws-sdk/client-s3');
+      // Use eval to prevent webpack from analyzing this import
+      // eslint-disable-next-line no-eval
+      const s3Module = eval('require')('@aws-sdk/client-s3');
       S3Client = s3Module.S3Client;
       PutObjectCommand = s3Module.PutObjectCommand;
     } catch (error: any) {
-      if (error.code === 'MODULE_NOT_FOUND') {
+      if (error.code === 'MODULE_NOT_FOUND' || error.message?.includes('Cannot find module')) {
         throw new Error('AWS SDK not installed. Run: npm install @aws-sdk/client-s3');
       }
       throw error;
@@ -99,8 +100,9 @@ class S3Storage implements StorageAdapter {
 
   async delete(filename: string): Promise<void> {
     try {
-      // eslint-disable-next-line @typescript-eslint/no-require-imports
-      const s3Module = require('@aws-sdk/client-s3');
+      // Use eval to prevent webpack from analyzing this import
+      // eslint-disable-next-line no-eval
+      const s3Module = eval('require')('@aws-sdk/client-s3');
       const S3Client = s3Module.S3Client;
       const DeleteObjectCommand = s3Module.DeleteObjectCommand;
       

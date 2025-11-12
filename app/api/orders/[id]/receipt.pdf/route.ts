@@ -27,12 +27,13 @@ export async function GET(_req: Request, { params }: { params: { id: string } })
     }
 
     // Dynamically require pdfkit so the app can run without it if not installed
+    // Use eval to prevent webpack from analyzing this import
     let PDFDocument: any;
     try {
-      // eslint-disable-next-line @typescript-eslint/no-require-imports
-      PDFDocument = require('pdfkit');
+      // eslint-disable-next-line no-eval
+      PDFDocument = eval('require')('pdfkit');
     } catch (error: any) {
-      if (error.code === 'MODULE_NOT_FOUND') {
+      if (error.code === 'MODULE_NOT_FOUND' || error.message?.includes('Cannot find module')) {
         return NextResponse.json({
           error: 'PDF generator not available. Please install "pdfkit" (npm i pdfkit) to enable PDF receipts.'
         }, { status: 501 });
