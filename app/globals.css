@@ -1,0 +1,255 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --foreground-rgb: 0, 0, 0;
+  --background-start-rgb: 214, 219, 220;
+  --background-end-rgb: 255, 255, 255;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --foreground-rgb: 255, 255, 255;
+    --background-start-rgb: 0, 0, 0;
+    --background-end-rgb: 0, 0, 0;
+  }
+}
+
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 0 0% 3.9%;
+    --card: 0 0% 100%;
+    --card-foreground: 0 0% 3.9%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 0 0% 3.9%;
+    --primary: 0 0% 9%;
+    --primary-foreground: 0 0% 98%;
+    --secondary: 0 0% 96.1%;
+    --secondary-foreground: 0 0% 9%;
+    --muted: 0 0% 96.1%;
+    --muted-foreground: 0 0% 45.1%;
+    --accent: 0 0% 96.1%;
+    --accent-foreground: 0 0% 9%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 0 0% 89.8%;
+    --input: 0 0% 89.8%;
+    --ring: 0 0% 3.9%;
+    --chart-1: 12 76% 61%;
+    --chart-2: 173 58% 39%;
+    --chart-3: 197 37% 24%;
+    --chart-4: 43 74% 66%;
+    --chart-5: 27 87% 67%;
+    --radius: 0.5rem;
+  }
+  .dark {
+    --background: 0 0% 3.9%;
+    --foreground: 0 0% 98%;
+    --card: 0 0% 3.9%;
+    --card-foreground: 0 0% 98%;
+    --popover: 0 0% 3.9%;
+    --popover-foreground: 0 0% 98%;
+    --primary: 0 0% 98%;
+    --primary-foreground: 0 0% 9%;
+    --secondary: 0 0% 14.9%;
+    --secondary-foreground: 0 0% 98%;
+    --muted: 0 0% 14.9%;
+    --muted-foreground: 0 0% 63.9%;
+    --accent: 0 0% 14.9%;
+    --accent-foreground: 0 0% 98%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 0 0% 14.9%;
+    --input: 0 0% 14.9%;
+    --ring: 0 0% 83.1%;
+    --chart-1: 220 70% 50%;
+    --chart-2: 160 60% 45%;
+    --chart-3: 30 80% 55%;
+    --chart-4: 280 65% 60%;
+    --chart-5: 340 75% 55%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  
+  html {
+    font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
+    font-variant-ligatures: common-ligatures;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+  
+  body {
+    @apply bg-background text-foreground font-body;
+    font-feature-settings: 'rlig' 1, 'calt' 1;
+  }
+  
+  /* Typography hierarchy for ecommerce */
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-heading font-semibold tracking-tight;
+  }
+  
+  h1 {
+    @apply text-4xl md:text-5xl lg:text-6xl;
+  }
+  
+  h2 {
+    @apply text-3xl md:text-4xl lg:text-5xl;
+  }
+  
+  h3 {
+    @apply text-2xl md:text-3xl lg:text-4xl;
+  }
+  
+  h4 {
+    @apply text-xl md:text-2xl lg:text-3xl;
+  }
+  
+  h5 {
+    @apply text-lg md:text-xl lg:text-2xl;
+  }
+  
+  h6 {
+    @apply text-base md:text-lg lg:text-xl;
+  }
+  
+  /* Product titles and pricing */
+  .product-title {
+    @apply font-heading font-semibold text-lg md:text-xl leading-tight;
+  }
+  
+  .product-price {
+    @apply font-heading font-bold text-xl md:text-2xl;
+  }
+  
+  .product-description {
+    @apply font-body text-sm md:text-base leading-relaxed;
+  }
+  
+  /* Button typography */
+  .btn-primary {
+    @apply font-body font-medium text-sm md:text-base;
+  }
+  
+  /* Form typography */
+  input, textarea, select {
+    @apply font-body;
+  }
+  
+  label {
+    @apply font-body font-medium text-sm;
+  }
+}
+
+@layer components {
+  .product-image {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    object-position: center;
+  }
+  
+  .product-card {
+    min-width: 280px;
+    max-width: 320px;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    transition: all 0.3s ease;
+  }
+  
+  .product-card:hover {
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    transform: translateY(-2px);
+  }
+
+  /* Ecommerce typography utilities */
+  .text-hero {
+    @apply font-heading font-bold text-5xl md:text-6xl lg:text-7xl leading-tight tracking-tight;
+  }
+  
+  .text-section-title {
+    @apply font-heading font-semibold text-3xl md:text-4xl lg:text-5xl leading-tight;
+  }
+  
+  .text-product-title {
+    @apply font-heading font-semibold text-lg md:text-xl leading-tight;
+  }
+  
+  .text-product-price {
+    @apply font-heading font-bold text-xl md:text-2xl;
+  }
+  
+  .text-product-price-large {
+    @apply font-heading font-bold text-2xl md:text-3xl;
+  }
+  
+  .text-body-large {
+    @apply font-body text-lg md:text-xl leading-relaxed;
+  }
+  
+  .text-body {
+    @apply font-body text-base md:text-lg leading-relaxed;
+  }
+  
+  .text-body-small {
+    @apply font-body text-sm md:text-base leading-relaxed;
+  }
+  
+  .text-caption {
+    @apply font-body text-xs md:text-sm leading-normal;
+  }
+  
+  .text-button {
+    @apply font-body font-medium text-sm md:text-base;
+  }
+  
+  .text-label {
+    @apply font-body font-medium text-sm;
+  }
+  
+  .text-accent {
+    @apply font-accent font-medium;
+  }
+  
+  /* Price display utilities */
+  .price-current {
+    @apply font-heading font-bold text-xl md:text-2xl text-gray-900;
+  }
+  
+  .price-original {
+    @apply font-heading text-lg line-through text-gray-500;
+  }
+  
+  .price-discount {
+    @apply font-accent font-semibold text-sm text-green-600;
+  }
+  
+  /* Brand typography */
+  .brand-title {
+    @apply font-heading font-bold text-2xl md:text-3xl tracking-tight;
+  }
+  
+  .brand-subtitle {
+    @apply font-body text-lg md:text-xl text-gray-600;
+  }
+
+  /* Line clamp utilities */
+  .line-clamp-1 {
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 1;
+  }
+  
+  .line-clamp-2 {
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+  }
+}
