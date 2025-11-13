@@ -38,7 +38,13 @@ export async function POST(req: Request) {
     }
 
     const customer = rows[0];
-    if (!verifyPassword(String(password), String(customer.password_hash))) {
+    const passwordHash = String(customer.password_hash || '');
+    if (!passwordHash) {
+      console.error('Customer has no password hash:', customer.id);
+      return NextResponse.json({ error: 'Invalid credentials' }, { status: 401 });
+    }
+    if (!verifyPassword(String(password), passwordHash)) {
+      console.error('Password verification failed for customer:', customer.id);
       return NextResponse.json({ error: 'Invalid credentials' }, { status: 401 });
     }
 

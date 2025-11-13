@@ -53,7 +53,7 @@ function getPool(): mysql.Pool {
     password: getRequiredEnv('MYSQL_PASSWORD'),
     database: getRequiredEnv('MYSQL_DATABASE'),
     waitForConnections: true,
-    connectionLimit: Number(process.env.MYSQL_POOL_LIMIT || 20), // Increased pool size
+    connectionLimit: Number(process.env.MYSQL_POOL_LIMIT || 10), // Reduced to prevent max_user_connections
     queueLimit: 0,
     enableKeepAlive: true,
     keepAliveInitialDelay: 0,
@@ -65,10 +65,8 @@ function getPool(): mysql.Pool {
       : undefined,
   });
 
-  // In development, cache the pool globally so hot reloads don't create new pools
-  if (process.env.NODE_ENV !== 'production') {
-    global._mysqlPool = pool;
-  }
+  // Cache the pool globally to prevent multiple pools
+  global._mysqlPool = pool;
 
   return pool;
 }
@@ -91,8 +89,8 @@ export async function query<T = any>(sql: string, params: any[] = []): Promise<T
       return [];
     }
     console.error('Database query error:', error.message);
-    // Return empty array if database is not available
-    return [];
+    // Re-throw the error so API routes can handle it properly
+    throw error;
   }
 }
 
@@ -107,7 +105,7 @@ export async function execute(sql: string, params: any[] = []) {
       return { insertId: 0, affectedRows: 0 } as mysql.ResultSetHeader;
     }
     console.error('Database execute error:', error.message);
-    // Return a mock result if database is not available
-    return { insertId: 0, affectedRows: 0 } as mysql.ResultSetHeader;
+    // Re-throw the error so API routes can handle it properly
+    throw error;
   }
 }
