@@ -123,68 +123,8 @@ export default function Home() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [promotion]);
 
-  const kits = [
-    {
-      id: "ifresh-grooming-kit",
-      name: "iFresh Grooming Kit",
-      tagline: "Grow Like a King",
-      description: "Everything you need in one premium box: Complete grooming solution for the ultimate.",
-      includes: ["30ml Beard Oil", "60g Beard Balm", "250ml Beard Wash", "250ml Conditioner", "Beard Comb", "Medium Brush", "0.5mm Derma Roller"],
-      price: "215,000",
-      badge: "Most Popular",
-      image: "/promo/WhatsApp Image 2025-09-01 at 11.28.30.jpeg"
-    },
-    {
-      id: "starter-kit",
-      name: "Starter Kit",
-      tagline: "Your First Step to a Legendary Beard",
-      description: "Perfect for beginners, this kit includes the essentials to kickstart your grooming journey.",
-      includes: ["50ml Beard Oil", "60g Beard Balm", "0.5mm Beard Roller", "Double Sides Comb"],
-      price: "145,000",
-      badge: "Best for Beginners",
-      image: "/promo/WhatsApp Image 2025-09-01 at 11.28.34.jpeg"
-    },
-    {
-      id: "pro-grooming-kit",
-      name: "Pro Grooming Kit",
-      tagline: "The Ultimate Beard Upgrade",
-      description: "Everything you need to grow, groom, style, and maintain your beard like a professional.",
-      includes: ["Beard Trimmer", "500ml Wash", "250ml Conditioner", "50ml Oil", "60g Balm", "Comb", "Big Brush", "Derma Roller"],
-      price: "290,000",
-      badge: "Premium Choice",
-      image: "/promo/WhatsApp Image 2025-09-01 at 11.28.35 (1).jpeg"
-    },
-    {
-      id: "luxury-beard-kit",
-      name: "Luxury Beard Kit",
-      tagline: "Elite Grooming Experience",
-      description: "Premium collection for the discerning gentleman. Handcrafted tools and organic ingredients for the ultimate grooming experience.",
-      includes: ["100ml Premium Oil", "120g Luxury Balm", "500ml Organic Wash", "500ml Deep Conditioner", "Wooden Comb", "Boar Bristle Brush", "0.75mm Derma Roller", "Styling Wax"],
-      price: "385,000",
-      badge: "Luxury",
-      image: "/promo/WhatsApp Image 2025-09-01 at 11.28.28.jpeg"
-    },
-    {
-      id: "travel-grooming-kit",
-      name: "Travel Grooming Kit",
-      tagline: "Grooming on the Go",
-      description: "Compact and travel-friendly kit perfect for business trips, vacations, or daily commutes. Everything you need in a portable package.",
-      includes: ["30ml Travel Oil", "30g Travel Balm", "100ml Travel Wash", "Travel Comb", "Mini Derma Roller"],
-      price: "95,000",
-      badge: "Travel Ready",
-      image: "/promo/WhatsApp Image 2025-09-01 at 11.28.24.jpeg"
-    },
-    {
-      id: "growth-acceleration-kit",
-      name: "Growth Acceleration Kit",
-      tagline: "Maximize Your Beard Potential",
-      description: "Scientifically formulated to stimulate faster, thicker beard growth. Perfect for patchy beards or slow growers.",
-      includes: ["Growth Serum", "1.0mm Derma Roller", "Growth Oil", "Scalp Massager", "Vitamin Supplements", "Growth Guide"],
-      price: "175,000",
-      badge: "Growth Focused",
-      image: "/promo/WhatsApp Image 2025-09-01 at 11.28.21.jpeg"
-    }
-  ];
+  // No dummy kits - only show database products
+  const kits: any[] = [];
 
 
   return (
@@ -582,7 +522,8 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Grooming Kits Section */}
+      {/* Grooming Kits Section - Show database products */}
+      {products.length > 0 && (
       <section className="py-24 bg-gradient-to-br from-slate-50 via-white to-slate-100 relative overflow-hidden">
         {/* Background Pattern */}
         <div className="absolute inset-0 bg-[url('data:image/svg+xml,%3Csvg%20width%3D%2260%22%20height%3D%2260%22%20viewBox%3D%220%200%2060%2060%22%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%3E%3Cg%20fill%3D%22none%22%20fill-rule%3D%22evenodd%22%3E%3Cg%20fill%3D%22%23b47435%22%20fill-opacity%3D%220.02%22%3E%3Ccircle%20cx%3D%2230%22%20cy%3D%2230%22%20r%3D%222%22/%3E%3C/g%3E%3C/g%3E%3C/svg%3E')] opacity-60"></div>
@@ -601,22 +542,22 @@ export default function Home() {
           </div>
           
           <div className="grid lg:grid-cols-3 md:grid-cols-2 gap-8 max-w-6xl mx-auto">
-            {kits.map((kit, index) => (
-              <Link key={index} href={`/products/${kit.id}`}>
+            {products.slice(0, 6).map((product, index) => (
+              <Link key={product.id || index} href={`/products/${product.id}`}>
                 <Card className="group relative hover:shadow-2xl transition-all duration-500 bg-white/80 backdrop-blur-sm border-0 overflow-hidden rounded-3xl shadow-xl cursor-pointer hover:-translate-y-2 hover:scale-105">
-                  {kit.badge && (
+                  {product.badge && (
                     <div className="absolute top-4 right-4 z-20">
                       <span className="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-bold bg-gradient-to-r from-[#b47435] to-[#b77123] text-white shadow-lg">
-                        {kit.badge}
+                        {product.badge}
                       </span>
                     </div>
                   )}
                   
-                  {/* Kit Image */}
+                  {/* Product Image */}
                   <div className="aspect-video relative overflow-hidden bg-gradient-to-br from-[#f0c770]/10 to-[#b47435]/20">
                     <img 
-                      src={kit.image} 
-                      alt={kit.name}
+                      src={product.image || '/products/logo.jpeg'} 
+                      alt={product.name}
                       className="w-full h-full object-contain object-center group-hover:scale-110 transition-transform duration-500"
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
@@ -624,22 +565,28 @@ export default function Home() {
                   
                   <CardHeader className="pb-4 px-6 pt-6">
                     <CardTitle className="text-xl font-outfit-bold bg-gradient-to-r from-slate-800 to-slate-900 bg-clip-text text-transparent group-hover:text-[#b47435] transition-colors duration-300">
-                      {kit.name}
+                      {product.name}
                     </CardTitle>
-                    <CardDescription className="text-[#b47435] font-semibold text-sm font-outfit-regular">
-                      {kit.tagline}
-                    </CardDescription>
+                    {product.tagline && (
+                      <CardDescription className="text-[#b47435] font-semibold text-sm font-outfit-regular">
+                        {product.tagline}
+                      </CardDescription>
+                    )}
                   </CardHeader>
                   
                   <CardContent className="px-6 pb-6">
-                    <p className="text-slate-600 text-sm mb-6 line-clamp-3 font-outfit-regular leading-relaxed">{kit.description}</p>
+                    <p className="text-slate-600 text-sm mb-6 line-clamp-3 font-outfit-regular leading-relaxed">{product.description}</p>
                     
                     <div className="flex items-center justify-between">
                       <div className="flex flex-col">
                         <span className="text-2xl font-bold bg-gradient-to-r from-[#b47435] to-[#b77123] bg-clip-text text-transparent font-outfit-bold">
-                          TSh {kit.price}
+                          TSh {typeof product.price === 'string' ? product.price : Number(product.price).toLocaleString()}
                         </span>
-                        <span className="text-xs text-slate-500 font-outfit-regular">Complete Kit</span>
+                        {product.originalPrice && (
+                          <span className="text-xs text-slate-500 line-through font-outfit-regular">
+                            TSh {typeof product.originalPrice === 'string' ? product.originalPrice : Number(product.originalPrice).toLocaleString()}
+                          </span>
+                        )}
                       </div>
                       <Button 
                         size="sm"
@@ -648,19 +595,18 @@ export default function Home() {
                           e.preventDefault();
                           e.stopPropagation();
                           addItem({
-                            ...kit,
-                            price: parseFloat(kit.price),
-                            category: 'Grooming Kit'
+                            ...product,
+                            price: typeof product.price === 'string' ? parseFloat(product.price.replace(/,/g, '')) : Number(product.price),
                           });
                           toast({
-                            title: "Kit Added to Cart",
-                            description: `${kit.name} grooming kit has been added to your cart.`,
+                            title: "Product Added to Cart",
+                            description: `${product.name} has been added to your cart.`,
                             duration: 3000,
                           });
                         }}
                       >
                         <ShoppingCart className="w-4 h-4 mr-2" />
-                        Add Kit
+                        Add to Cart
                       </Button>
                     </div>
                   </CardContent>
@@ -670,9 +616,11 @@ export default function Home() {
           </div>
         </div>
       </section>
+      )}
 
 
-      {/* Product Recommendations Section */}
+      {/* Product Recommendations Section - Show database products */}
+      {products.length >= 2 && (
       <section className="py-20 bg-white">
         <div className="container mx-auto px-4">
           <div className="text-center mb-16">
@@ -683,74 +631,46 @@ export default function Home() {
           </div>
           
           <div className="grid lg:grid-cols-3 gap-8">
-            {/* Beard Oil + Balm Combo */}
-            <Card className="relative hover:shadow-2xl transition-all duration-300 border-0 bg-gradient-to-br from-white to-yellow-50 group overflow-hidden rounded-2xl shadow-lg">
-              <div className="p-6">
-                <div className="flex items-center mb-4">
-                  <div className="w-16 h-16 bg-gradient-to-r from-[#b47435] to-[#b77123] rounded-full flex items-center justify-center text-white font-bold text-xl mr-4">
-                    O+B
+            {/* Show first 3 products as recommended combos */}
+            {products.slice(0, 3).map((product, index) => {
+              const comboInitials = product.name.split(' ').map((w: string) => w[0]).join('').toUpperCase().slice(0, 2);
+              const price = typeof product.price === 'string' ? parseFloat(product.price.replace(/,/g, '')) : Number(product.price);
+              const originalPrice = product.originalPrice ? (typeof product.originalPrice === 'string' ? parseFloat(product.originalPrice.replace(/,/g, '')) : Number(product.originalPrice)) : null;
+              const discount = originalPrice && originalPrice > price ? Math.round(((originalPrice - price) / originalPrice) * 100) : 0;
+              
+              return (
+                <Card key={product.id || index} className="relative hover:shadow-2xl transition-all duration-300 border-0 bg-gradient-to-br from-white to-yellow-50 group overflow-hidden rounded-2xl shadow-lg cursor-pointer" onClick={() => window.location.href = `/products/${product.id}`}>
+                  <div className="p-6">
+                    <div className="flex items-center mb-4">
+                      <div className="w-16 h-16 bg-gradient-to-r from-[#b47435] to-[#b77123] rounded-full flex items-center justify-center text-white font-bold text-xl mr-4">
+                        {comboInitials}
+                      </div>
+                      <div>
+                        <h4 className="text-xl font-bold text-slate-800">{product.name}</h4>
+                        {product.tagline && (
+                          <p className="text-[#b47435] font-semibold">{product.tagline}</p>
+                        )}
+                      </div>
+                    </div>
+                    {product.description && (
+                      <p className="text-slate-600 mb-4 line-clamp-2">{product.description}</p>
+                    )}
+                    <div className="flex items-center justify-between">
+                      <span className="text-2xl font-bold bg-gradient-to-r from-[#b47435] to-[#b77123] bg-clip-text text-transparent">
+                        TSh {price.toLocaleString()}
+                      </span>
+                      {discount > 0 && (
+                        <Badge className="bg-green-100 text-green-800">Save {discount}%</Badge>
+                      )}
+                    </div>
                   </div>
-                  <div>
-                    <h4 className="text-xl font-bold text-slate-800">Beard Oil + Balm Combo</h4>
-                    <p className="text-[#b47435] font-semibold">Perfect Daily Routine</p>
-                  </div>
-                </div>
-                <p className="text-slate-600 mb-4">Complete your beard care with our signature oil for hydration and balm for styling control.</p>
-                <div className="flex items-center justify-between">
-                  <span className="text-2xl font-bold bg-gradient-to-r from-[#b47435] to-[#b77123] bg-clip-text text-transparent">
-                    TSh 53.98
-                  </span>
-                  <Badge className="bg-green-100 text-green-800">Save 15%</Badge>
-                </div>
-              </div>
-            </Card>
-
-            {/* Complete Grooming Kit */}
-            <Card className="relative hover:shadow-2xl transition-all duration-300 border-0 bg-gradient-to-br from-white to-yellow-50 group overflow-hidden rounded-2xl shadow-lg">
-              <div className="p-6">
-                <div className="flex items-center mb-4">
-                  <div className="w-16 h-16 bg-gradient-to-r from-[#b47435] to-[#b77123] rounded-full flex items-center justify-center text-white font-bold text-xl mr-4">
-                    CG
-                  </div>
-                  <div>
-                    <h4 className="text-xl font-bold text-slate-800">Complete Grooming Kit</h4>
-                    <p className="text-[#b47435] font-semibold">Everything You Need</p>
-                  </div>
-                </div>
-                <p className="text-slate-600 mb-4">Oil, balm, wash, conditioner, brush, and comb - everything for the perfect beard care routine.</p>
-                <div className="flex items-center justify-between">
-                  <span className="text-2xl font-bold bg-gradient-to-r from-[#b47435] to-[#b77123] bg-clip-text text-transparent">
-                    TSh 89.99
-                  </span>
-                  <Badge className="bg-green-100 text-green-800">Save 25%</Badge>
-                </div>
-              </div>
-            </Card>
-
-            {/* Growth Starter Pack */}
-            <Card className="relative hover:shadow-2xl transition-all duration-300 border-0 bg-gradient-to-br from-white to-yellow-50 group overflow-hidden rounded-2xl shadow-lg">
-              <div className="p-6">
-                <div className="flex items-center mb-4">
-                  <div className="w-16 h-16 bg-gradient-to-r from-[#b47435] to-[#b77123] rounded-full flex items-center justify-center text-white font-bold text-xl mr-4">
-                    GS
-                  </div>
-                  <div>
-                    <h4 className="text-xl font-bold text-slate-800">Growth Starter Pack</h4>
-                    <p className="text-[#b47435] font-semibold">Boost Your Growth</p>
-                  </div>
-                </div>
-                <p className="text-slate-600 mb-4">Derma roller, growth oil, and vitamins to stimulate and nourish your beard growth.</p>
-                <div className="flex items-center justify-between">
-                  <span className="text-2xl font-bold bg-gradient-to-r from-[#b47435] to-[#b77123] bg-clip-text text-transparent">
-                    TSh 67.99
-                  </span>
-                  <Badge className="bg-green-100 text-green-800">Save 20%</Badge>
-                </div>
-              </div>
-            </Card>
+                </Card>
+              );
+            })}
           </div>
         </div>
       </section>
+      )}
 
       {/* FAQ Section */}
       <section className="py-20 bg-gradient-to-br from-slate-50 to-slate-100">
