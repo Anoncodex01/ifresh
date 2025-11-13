@@ -598,6 +598,7 @@ export default function Home() {
                             ...product,
                             price: typeof product.price === 'string' ? parseFloat(product.price.replace(/,/g, '')) : Number(product.price),
                             originalPrice: product.originalPrice ? (typeof product.originalPrice === 'string' ? parseFloat(product.originalPrice.replace(/,/g, '')) : Number(product.originalPrice)) : undefined,
+                            category: product.category || 'Uncategorized',
                           });
                           toast({
                             title: "Product Added to Cart",
