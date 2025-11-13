@@ -124,75 +124,7 @@ async function ensureTable() {
     `);
 }
 
-// Mock products data for when database is not available
-const mockProducts = [
-  {
-    id: 1,
-    name: 'Beard Oil',
-    category: 'Hair Care',
-    tagline: 'Stronger - Thicker - Longer Hair',
-    description: 'Premium beard oil for enhanced hair growth and styling. Made with natural ingredients.',
-    price: 45000,
-    image: '/products/WhatsApp Image 2025-09-01 at 11.28.18.jpeg',
-    stock: 50,
-    status: 'active'
-  },
-  {
-    id: 2,
-    name: 'Hair Growth Serum',
-    category: 'Hair Care',
-    tagline: 'Advanced Hair Growth Formula',
-    description: 'Professional-grade hair growth serum with proven ingredients.',
-    price: 55000,
-    image: '/products/WhatsApp Image 2025-09-01 at 11.28.19.jpeg',
-    stock: 30,
-    status: 'active'
-  },
-  {
-    id: 3,
-    name: 'Beard Balm',
-    category: 'Hair Care',
-    tagline: 'Styling and Conditioning',
-    description: 'All-natural beard balm for styling and conditioning your beard.',
-    price: 35000,
-    image: '/products/WhatsApp Image 2025-09-01 at 11.28.20.jpeg',
-    stock: 25,
-    status: 'active'
-  },
-  {
-    id: 4,
-    name: 'Hair Shampoo',
-    category: 'Hair Care',
-    tagline: 'Gentle Daily Cleansing',
-    description: 'Sulfate-free shampoo for daily hair care and maintenance.',
-    price: 25000,
-    image: '/products/WhatsApp Image 2025-09-01 at 11.28.21.jpeg',
-    stock: 40,
-    status: 'active'
-  },
-  {
-    id: 5,
-    name: 'Face Moisturizer',
-    category: 'Skincare',
-    tagline: 'Hydrating Daily Care',
-    description: 'Lightweight moisturizer for all skin types.',
-    price: 30000,
-    image: '/products/WhatsApp Image 2025-09-01 at 11.28.23.jpeg',
-    stock: 35,
-    status: 'active'
-  },
-  {
-    id: 6,
-    name: 'Vitamin C Serum',
-    category: 'Skincare',
-    tagline: 'Brightening and Anti-Aging',
-    description: 'High-potency vitamin C serum for radiant skin.',
-    price: 65000,
-    image: '/products/WhatsApp Image 2025-09-01 at 11.28.24.jpeg',
-    stock: 20,
-    status: 'active'
-  }
-];
+// No mock products - only return database products
 
 export async function GET(request: Request) {
     try {
@@ -263,44 +195,19 @@ export async function GET(request: Request) {
         
         const rows = await query<any>(sqlQuery, params);
 
-        // If no products from database, return mock data
+        // Only return database products - no mock data fallback
         if (rows.length === 0) {
-            let filteredProducts = mockProducts;
-            
-            if (category) {
-                filteredProducts = mockProducts.filter(p => p.category === category);
-            }
-            
-            if (exclude) {
-                filteredProducts = filteredProducts.filter(p => p.id.toString() !== exclude);
-            }
-
-            if (onSale) {
-                filteredProducts = filteredProducts.filter((p: any) => Number(p.original_price || 0) > Number(p.price || 0));
-            }
-            
-            const limitNum = limit ? parseInt(limit) : 100;
-            if (sort === 'expiry_asc') {
-                filteredProducts = [...filteredProducts].sort((a: any, b: any) => {
-                    const ax = a.discount_expiry || null; const bx = b.discount_expiry || null;
-                    if (ax && bx) return String(ax).localeCompare(String(bx));
-                    if (ax && !bx) return -1; if (!ax && bx) return 1; return 0;
-                });
-            }
-            filteredProducts = filteredProducts.slice(0, limitNum);
-            
-            // Cache mock data for basic queries
+            // Cache empty result for basic queries
             if (isBasicQuery) {
-                setCachedProducts(filteredProducts);
+                setCachedProducts([]);
             }
-            
             return NextResponse.json(
-                { products: filteredProducts }, 
+                { products: [] }, 
                 { 
                     status: 200,
                     headers: {
                         'Cache-Control': 'public, max-age=300',
-                        'X-Cache': 'MOCK'
+                        'X-Cache': 'EMPTY'
                     }
                 }
             );
@@ -339,31 +246,14 @@ export async function GET(request: Request) {
             );
         }
         
-        // Return mock data if database fails and no cache
-        let filteredProducts = mockProducts;
-        const { searchParams } = new URL(request.url);
-        const category = searchParams.get('category');
-        const limit = searchParams.get('limit');
-        const exclude = searchParams.get('exclude');
-        
-        if (category) {
-            filteredProducts = mockProducts.filter(p => p.category === category);
-        }
-        
-        if (exclude) {
-            filteredProducts = filteredProducts.filter(p => p.id.toString() !== exclude);
-        }
-        
-        const limitNum = limit ? parseInt(limit) : 100;
-        filteredProducts = filteredProducts.slice(0, limitNum);
-        
+        // Return empty array if database fails and no cache - no mock data
         return NextResponse.json(
-            { products: filteredProducts, warning: 'Using mock data' }, 
+            { products: [] }, 
             { 
                 status: 200,
                 headers: {
                     'Cache-Control': 'public, max-age=60',
-                    'X-Cache': 'ERROR-FALLBACK'
+                    'X-Cache': 'ERROR-EMPTY'
                 }
             }
         );

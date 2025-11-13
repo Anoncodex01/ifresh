@@ -33,31 +33,38 @@ export default function Header({ showBackButton = false, onBackClick }: HeaderPr
     <header className="fixed top-0 left-0 right-0 z-50">
       {/* Top Bar - Gold */}
       <div className="bg-gradient-to-r from-[#b47435] to-[#b77123] text-white py-2">
-        <div className="max-w-7xl mx-auto px-4 flex items-center justify-between text-sm">
-          <div className="flex items-center space-x-2">
-            <div className="w-4 h-4 bg-white rounded-sm flex items-center justify-center">
-              <div className="w-2 h-2 bg-gradient-to-r from-[#b47435] to-[#b77123] rounded-sm"></div>
+        <div className="max-w-7xl mx-auto px-4">
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-2 sm:gap-0 text-xs sm:text-sm">
+            {/* Shipping Info - Full width on mobile, left on desktop */}
+            <div className="flex items-center space-x-2 order-1 sm:order-1">
+              <div className="w-3 h-3 sm:w-4 sm:h-4 bg-white rounded-sm flex items-center justify-center flex-shrink-0">
+                <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-gradient-to-r from-[#b47435] to-[#b77123] rounded-sm"></div>
+              </div>
+              <span className="font-medium whitespace-nowrap">FREE SHIPPING OVER TSh 50,000</span>
             </div>
-            <span className="font-medium">FREE SHIPPING OVER TSh 50,000</span>
-          </div>
-          <div className="flex items-center space-x-6">
-            <div className="flex items-center space-x-2">
-              <Phone className="w-4 h-4" />
-              <span>+255 758 555 551</span>
+            {/* Right side items - Stack on mobile, row on desktop */}
+            <div className="flex items-center space-x-3 sm:space-x-6 order-2 sm:order-2">
+              {/* Phone - Hidden on very small screens, visible on sm+ */}
+              <div className="hidden sm:flex items-center space-x-2">
+                <Phone className="w-4 h-4 flex-shrink-0" />
+                <span className="whitespace-nowrap">+255 758 555 551</span>
+              </div>
+              {/* Account - Always visible */}
+              <Link href="/auth/login" className="flex items-center space-x-1 sm:space-x-2 hover:text-yellow-200 transition-colors">
+                <User className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
+                <span className="whitespace-nowrap">ACCOUNT</span>
+              </Link>
+              {/* Cart - Always visible */}
+              <Link href="/cart" className="flex items-center space-x-1 sm:space-x-2 hover:text-yellow-200 transition-colors relative">
+                <ShoppingCart className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
+                <span className="whitespace-nowrap">CART</span>
+                {getItemCount() > 0 && (
+                  <span className="absolute -top-1.5 -right-1.5 sm:-top-2 sm:-right-2 bg-white text-[#b47435] text-[10px] sm:text-xs rounded-full w-4 h-4 sm:w-5 sm:h-5 flex items-center justify-center font-bold">
+                    {getItemCount()}
+                  </span>
+                )}
+              </Link>
             </div>
-            <Link href="/auth/login" className="flex items-center space-x-2 hover:text-yellow-200 transition-colors">
-              <User className="w-4 h-4" />
-              <span>ACCOUNT</span>
-            </Link>
-            <Link href="/cart" className="flex items-center space-x-2 hover:text-yellow-200 transition-colors relative">
-              <ShoppingCart className="w-4 h-4" />
-              <span>CART</span>
-              {getItemCount() > 0 && (
-                <span className="absolute -top-2 -right-2 bg-white text-[#b47435] text-xs rounded-full w-5 h-5 flex items-center justify-center font-bold">
-                  {getItemCount()}
-                </span>
-              )}
-            </Link>
           </div>
         </div>
       </div>

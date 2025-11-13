@@ -62,81 +62,7 @@ export default function Home() {
     } catch {}
   };
 
-  // Fallback products if no API products are available
-  const fallbackProducts: Product[] = [
-    {
-      id: "beard-oil",
-      name: "Tonic + Elixir Beard Oil Bundle",
-      tagline: "24/7 Hydration",
-      description: "Our signature beard oil is a lightweight, fast-absorbing blend of natural oils that hydrate, softens, and strengthens your beard from root to tip.",
-      price: "34.99",
-      image: "/products/WhatsApp Image 2025-09-01 at 11.28.35.jpeg"
-    },
-    {
-      id: "radiance-bundle",
-      name: "Radiance Bundle",
-      tagline: "Made to hydrate, strengthen, and enhance softness.",
-      description: "Control frizz, shape your beard, and moisturize deeply with our rich balm. Ideal for styling and deep conditioning.",
-      price: "34.99",
-      image: "/products/WhatsApp Image 2025-09-01 at 11.28.28 (1).jpeg"
-    },
-    {
-      id: "heated-beard-brush",
-      name: "Heated Beard Brush",
-      tagline: "Smooth, Style, and Straighten",
-      description: "A gentle yet effective beard wash that cleanses without stripping natural oils, leaving your beard fresh and soft.",
-      price: "98.00",
-      image: "/products/WhatsApp Image 2025-09-01 at 11.28.23.jpeg"
-    },
-    {
-      id: "viking-shield-heat-spray",
-      name: "Viking Shield Heat Spray",
-      tagline: "Guards against heat damage",
-      description: "Protect your beard from heat damage caused by styling tools with our lightweight, non-greasy heat protectant spray.",
-      price: "20.99",
-      image: "/products/WhatsApp Image 2025-09-01 at 11.28.21.jpeg"
-    },
-    {
-      id: "beard-comb-set",
-      name: "Premium Beard Comb Set",
-      tagline: "Professional Grooming Tools",
-      description: "Complete set of wooden combs for all beard lengths. Handcrafted from sustainable materials for the perfect grooming experience.",
-      price: "15.99",
-      image: "/products/WhatsApp Image 2025-09-01 at 11.28.24.jpeg"
-    },
-    {
-      id: "beard-brush",
-      name: "Natural Bristle Beard Brush",
-      tagline: "Smooth & Style Daily",
-      description: "High-quality natural bristle brush that distributes oils evenly and stimulates hair follicles for healthier beard growth.",
-      price: "12.99",
-      image: "/products/WhatsApp Image 2025-09-01 at 11.28.27.jpeg"
-    },
-    {
-      id: "derma-roller",
-      name: "Derma Roller Kit",
-      tagline: "Stimulate Growth Naturally",
-      description: "Professional derma roller with multiple needle sizes to stimulate beard growth and improve skin health.",
-      price: "25.99",
-      image: "/products/WhatsApp Image 2025-09-01 at 11.28.18.jpeg"
-    },
-    {
-      id: "beard-trimmer",
-      name: "Precision Beard Trimmer",
-      tagline: "Professional Grade Trimming",
-      description: "Advanced trimmer with multiple length settings and precision blades for the perfect beard shape and length.",
-      price: "89.99",
-      image: "/products/WhatsApp Image 2025-09-01 at 11.28.20.jpeg"
-    },
-    {
-      id: "beard-wax",
-      name: "Beard Styling Wax",
-      tagline: "Strong Hold, Natural Look",
-      description: "Premium styling wax with strong hold for shaping and taming even the most unruly beards. All-day control.",
-      price: "18.99",
-      image: "/products/WhatsApp Image 2025-09-01 at 11.28.19.jpeg"
-    }
-  ];
+  // No fallback products - only use database products
 
   useEffect(() => {
     let isMounted = true;
@@ -158,12 +84,13 @@ export default function Home() {
             p.additional_images.split(',').filter((url: string) => url.trim()) : [],
         }));
         if (isMounted) {
-          setProducts(apiProducts.length > 0 ? apiProducts : fallbackProducts);
+          // Only use database products - no fallback
+          setProducts(apiProducts);
         }
       } catch (err) {
-        // fail silently; fallback to bundled products
+        // fail silently; return empty array
         if (isMounted) {
-          setProducts(fallbackProducts);
+          setProducts([]);
         }
       }
     }

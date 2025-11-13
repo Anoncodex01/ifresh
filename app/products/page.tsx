@@ -38,45 +38,7 @@ export default function ProductsPage() {
     status?: 'active' | 'low_stock' | 'out_of_stock' | 'inactive';
   }>>([]);
 
-  // Sample products for display - exactly 3 products
-  const sampleProducts = [
-    {
-      id: "sample-1",
-      name: "Premium Beard Oil",
-      tagline: "24/7 Hydration",
-      description: "Lightweight, fast-absorbing blend of natural oils that hydrate, soften, and strengthen your beard from root to tip.",
-      price: "45,000",
-      originalPrice: "50,000",
-      image: "/products/WhatsApp Image 2025-09-01 at 11.28.35.jpeg",
-      category: "Beard Oil",
-      stock: 50,
-      status: "active" as const
-    },
-    {
-      id: "sample-2", 
-      name: "Beard Balm",
-      tagline: "Style & Nourish",
-      description: "Perfect for styling and conditioning your beard. Provides hold while keeping your beard soft and manageable.",
-      price: "35,000",
-      originalPrice: "40,000",
-      image: "/products/WhatsApp Image 2025-09-01 at 11.28.18.jpeg",
-      category: "Beard Care",
-      stock: 30,
-      status: "active" as const
-    },
-    {
-      id: "sample-3",
-      name: "Beard Wash",
-      tagline: "Deep Clean Formula", 
-      description: "Gentle yet effective beard wash that removes dirt, oil, and product buildup while keeping your beard soft and healthy.",
-      price: "25,000",
-      originalPrice: "30,000",
-      image: "/products/WhatsApp Image 2025-09-01 at 11.28.19.jpeg",
-      category: "Beard Care",
-      stock: 40,
-      status: "active" as const
-    }
-  ];
+  // No sample products - only use database products
   const [loading, setLoading] = useState(true);
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
   const [shareOpen, setShareOpen] = useState<boolean>(false);
@@ -104,11 +66,11 @@ export default function ProductsPage() {
         const data = await res.json().catch(() => ({ products: [] }));
         if (alive) {
           const apiProducts = Array.isArray(data.products) ? data.products : [];
-          // Use sample products if no API products are available
-          setProducts(apiProducts.length > 0 ? apiProducts : sampleProducts);
+          // Only use database products - no fallback to sample products
+          setProducts(apiProducts);
         }
       } catch {
-        if (alive) setProducts(sampleProducts);
+        if (alive) setProducts([]);
       } finally {
         if (alive) setLoading(false);
       }
